@@ -1,3 +1,4 @@
+use crate::articles;
 use crate::view::keyboard::Layout;
 use std::path::Path;
 use std::collections::{BTreeMap, VecDeque};
@@ -32,6 +33,7 @@ pub struct Context {
     pub display: Display,
     pub settings: Settings,
     pub library: Library,
+    pub article_service: Box<dyn articles::Service>,
     pub fonts: Fonts,
     pub dictionaries: BTreeMap<String, Dictionary>,
     pub keyboard_layouts: BTreeMap<String, Layout>,
@@ -55,8 +57,9 @@ impl Context {
         let dims = fb.dims();
         let rotation = CURRENT_DEVICE.transformed_rotation(fb.rotation());
         let rng = Xoroshiro128Plus::seed_from_u64(Local::now().timestamp_subsec_nanos() as u64);
+        let article_service = articles::load(settings.article_auth.clone());
         Context { fb, rtc, display: Display { dims, rotation },
-                  library, settings, fonts, dictionaries: BTreeMap::new(),
+                  library, article_service, settings, fonts, dictionaries: BTreeMap::new(),
                   keyboard_layouts: BTreeMap::new(), input_history: FxHashMap::default(),
                   battery, frontlight, lightsensor, notification_index: 0,
                   kb_rect: Rectangle::default(), rng, plugged: false, covered: false,
