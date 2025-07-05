@@ -25,12 +25,16 @@ pub const ARTICLES_DIR: &str = ".articles";
 #[derive(Serialize, Deserialize)]
 pub struct ArticleIndex {
     pub articles: BTreeMap<String, Article>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub queued: Vec<String>,
 }
 
 impl Default for ArticleIndex {
     fn default() -> Self {
         ArticleIndex {
             articles: BTreeMap::new(),
+            queued: Vec::new(),
         }
     }
 }
@@ -130,4 +134,9 @@ pub fn load(auth: settings::ArticleAuth) -> Box<dyn Service> {
         "wallabag" => Box::new(Wallabag::load(auth)),
         _ => Box::new(dummy::Dummy::new()),
     }
+}
+
+pub fn queue_link(service: &mut Box<dyn Service>, link: String) {
+    service.index().lock().unwrap().queued.push(link);
+    service.save_index();
 }

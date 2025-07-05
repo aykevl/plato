@@ -526,6 +526,36 @@ fn update(hub: &Hub, auth: ArticleAuth, index: Arc<Mutex<ArticleIndex>>) -> Resu
         hub.send(Event::ArticlesAuth(Ok(auth.clone()))).ok();
     }
 
+    // Submit new URLs.
+    let queued = index.lock().unwrap().queued.clone();
+    if !queued.is_empty() {
+        // Send the list of URLs via a GET parameter, because for some reason
+        // the Wallabag server only accepts those (and not a form in the POST
+        // request).
+        // See: https://github.com/wallabag/wallabag/issues/8353
+        match agent
+            .post(format!("{url}api/entries/lists"))
+            .query("urls", serde_json::to_string(&queued).unwrap())
+            .header("Authorization", "Bearer ".to_owned() + &auth.access_token)
+            .send_empty()
+        {
+            Ok(_) => {
+                let index = &mut index.lock().unwrap();
+                if index.queued.len() > queued.len() {
+                    // New URLs were added in the meantime, so keep those.
+                    // (Unlikely, but possible).
+                    index.queued = index.queued.split_off(queued.len());
+                } else {
+                    // No new URLs were added, so we can clear the queue.
+                    index.queued.clear();
+                }
+            }
+            Err(err) => {
+                return Err(Error::other(format!("submitting article failed: {err}")));
+            }
+        };
+    }
+
     // Sync local changes.
     let mut changes: BTreeMap<String, Vec<(&str, &str)>> = BTreeMap::new();
     let mut deleted: BTreeSet<String> = BTreeSet::new();
