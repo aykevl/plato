@@ -805,6 +805,9 @@ pub fn run() -> Result<(), Error> {
                     AppCmd::Articles => {
                         Box::new(Articles::new(context.fb.rect(), &mut rq, &mut context))
                     }
+                    AppCmd::Browser => {
+                        Box::new(Browser::new(context.fb.rect(), &mut rq, &mut context))
+                    }
                     AppCmd::TouchEvents => {
                         Box::new(TouchEvents::new(context.fb.rect(), &mut rq, &mut context))
                     },

@@ -7,6 +7,7 @@ use std::path::Path;
 use std::time::Duration;
 use plato_core::anyhow::{Error, Context as ResultExt};
 use plato_core::chrono::Local;
+use plato_core::view::browser::Browser;
 use sdl2::event::Event as SdlEvent;
 use sdl2::keyboard::{Scancode, Keycode, Mod};
 use sdl2::render::{WindowCanvas, BlendMode};
@@ -229,7 +230,8 @@ impl Framebuffer for FBCanvas {
     }
 }
 
-fn main() -> Result<(), Error> {
+#[tokio::main]
+async fn main() -> Result<(), Error> {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
     let (width, height) = CURRENT_DEVICE.dims;
@@ -447,6 +449,9 @@ fn main() -> Result<(), Error> {
                         },
                         AppCmd::Articles => {
                             Box::new(Articles::new(context.fb.rect(), &mut rq, &mut context))
+                        },
+                        AppCmd::Browser=> {
+                            Box::new(Browser::new(context.fb.rect(), &mut rq, &mut context))
                         },
                         AppCmd::TouchEvents => {
                             Box::new(TouchEvents::new(context.fb.rect(), &mut rq, &mut context))

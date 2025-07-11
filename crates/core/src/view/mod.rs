@@ -43,6 +43,7 @@ pub mod dictionary;
 pub mod calculator;
 pub mod sketch;
 pub mod articles;
+pub mod browser;
 pub mod touch_events;
 pub mod rotation_values;
 
@@ -383,6 +384,7 @@ pub enum AppCmd {
         language: String,
     },
     Articles,
+    Browser,
     TouchEvents,
     RotationValues,
 }
